@@ -9,6 +9,8 @@ import org.apache.cxf.transport.servlet.CXFServlet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -20,17 +22,18 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
-@EnableAutoConfiguration
+@SpringBootApplication
+@EntityScan("com.mera.inkrot.apachecxf.model")
+@ComponentScan({"com.mera.inkrot.apachecxf.service", "com.mera.inkrot.apachecxf.rest"})
+@EnableJpaRepositories("com.mera.inkrot.apachecxf.repository")
 @ImportResource({ "classpath:META-INF/cxf/cxf.xml" })
-@EnableJpaRepositories(basePackages = {"com.mera.inkrot.apachecxf.repository"})
-@ComponentScan
 public class Application extends SpringBootServletInitializer {
 
     @Autowired
     private ApplicationContext applicationContext;
 
     @Autowired
-    private CustomerService customerService; // <= NEED TO FIX
+    private CustomerServiceImpl customerService;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -57,7 +60,7 @@ public class Application extends SpringBootServletInitializer {
     public EndpointImpl customerService() {
         Bus bus = (Bus) applicationContext.getBean(Bus.DEFAULT_BUS_ID);
         Object implementor = new CustomerServiceImpl();
-        EndpointImpl endpoint = new EndpointImpl(bus, implementor);
+        EndpointImpl endpoint = new EndpointImpl(bus, customerService);
         endpoint.publish("/customer");
         return endpoint;
     }
